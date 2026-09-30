@@ -75,13 +75,30 @@ if ($sfcProcess.ExitCode -eq 0) {
 }
 
 # -----------------------------------------------------------------------------
+# STEP 3: DISM COMPONENT STORE CLEANUP
+# -----------------------------------------------------------------------------
+Log-Output "`n[STAGE 3/3] Executing: dism.exe /online /cleanup-image /startcomponentcleanup" "Yellow"
+Log-Output "Pruning superseded component versions and reclaiming disk space in WinSxS..." "Gray"
+
+$cleanupStartTime = Get-Date
+$cleanupProcess = Start-Process -FilePath "dism.exe" -ArgumentList "/online /cleanup-image /startcomponentcleanup" -Wait -PassThru -NoNewWindow
+$cleanupDuration = [math]::Round(((Get-Date) - $cleanupStartTime).TotalSeconds, 1)
+
+if ($cleanupProcess.ExitCode -eq 0) {
+    Log-Output "[OK] Component Store Cleanup completed successfully (Duration: ${cleanupDuration}s)." "Green"
+} else {
+    Log-Output "[WARNING] Component Store Cleanup exited with code $($cleanupProcess.ExitCode) (Duration: ${cleanupDuration}s)." "Yellow"
+}
+
+# -----------------------------------------------------------------------------
 # SUMMARY & VERIFICATION
 # -----------------------------------------------------------------------------
 Log-Output "`n================================================================================" "Cyan"
 Log-Output " REPAIR OPERATION SUMMARY" "Cyan"
 Log-Output "================================================================================" "Cyan"
-Log-Output "DISM Exit Code : $($dismProcess.ExitCode)"
-Log-Output "SFC Exit Code  : $($sfcProcess.ExitCode)"
+Log-Output "DISM RestoreHealth Exit Code : $($dismProcess.ExitCode)"
+Log-Output "SFC ScanNow Exit Code        : $($sfcProcess.ExitCode)"
+Log-Output "DISM Cleanup Exit Code       : $($cleanupProcess.ExitCode)"
 Log-Output "Detailed CBS Log: C:\Windows\Logs\CBS\CBS.log"
 Log-Output "Repair Log Path : $LogFile"
 Log-Output "Status         : Component store and active OS binaries verification complete." "Green"
