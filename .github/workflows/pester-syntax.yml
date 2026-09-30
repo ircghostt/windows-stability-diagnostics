@@ -1,0 +1,35 @@
+name: Lint & Syntax Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-powershell:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate PowerShell Script Syntax
+        shell: pwsh
+        run: |
+          $scripts = Get-ChildItem -Path . -Recurse -Filter *.ps1
+          $errors = @()
+          foreach ($s in $scripts) {
+              Write-Host "Checking: $($s.FullName)"
+              $tokens = $null
+              $parseErrors = $null
+              [void][System.Management.Automation.Language.Parser]::ParseFile($s.FullName, [ref]$tokens, [ref]$parseErrors)
+              if ($parseErrors) {
+                  Write-Error "Syntax error in $($s.Name): $($parseErrors.Message)"
+                  $errors += $parseErrors
+              }
+          }
+          if ($errors.Count -gt 0) {
+              exit 1
+          } else {
+              Write-Host "All PowerShell scripts passed syntax validation." -ForegroundColor Green
+          }

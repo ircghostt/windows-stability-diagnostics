@@ -1,0 +1,19 @@
+# Output telemetry and crash reports
+report.txt
+repair_log.txt
+*.log
+
+# Windows memory dumps
+*.dmp
+*.DMP
+MEMORY.DMP
+
+# PowerShell temporary artifacts
+*.tmp
+*~
+
+# IDE and OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
